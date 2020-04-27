@@ -69,7 +69,7 @@ if (pulseSensor.sawStartOfBeat()) {            // Constantly test to see if "a b
   for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
 
 
-    if (myIBI > 450){
+    if (myIBI < 450){
     pixels.setPixelColor(i, pixels.Color(150, 0, 0));    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255 // (Red, Green, Blue)
     pixels.show();   // Send the updated pixel colors to the hardware.
     delay (50);
