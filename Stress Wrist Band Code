@@ -14,10 +14,12 @@
   When user's IBI falls into these specific levels, this will cause the NeoPixels on the wrist band to light up with different colours corresponding to different levels.
 
   Low Stress Level = GREEN
-  Medium Stress Level = BLINKING RED
+  Medium Stress Level = BLINKING YELLOW
   High Stress Level = RED
+  
+  Find out more information about this stress wrist band at https://www.instructables.com/id/Stress-Wrist-Band/
 
-  Created 4/30/2020
+  Created 4/29/2020
   By Kay Laura Sindabizera and Michelle Lo
 
   BME375 Biomedical Instrumentation
@@ -27,14 +29,14 @@
   
  */
 
-#define USE_ARDUINO_INTERRUPTS true    // Set-up low-level interrupts for most acurate BPM math.
+#define USE_ARDUINO_INTERRUPTS true    // Set-up low-level interrupts for most acurate IBI math.
 #include <PulseSensorPlayground.h>     // Includes the PulseSensorPlayground Library.   
 #include <Adafruit_NeoPixel.h> // Adafruit NeoPixel library
 #ifdef __AVR__
-#include <avr/power.h> // Required for 16 MHz Adafruit Trinket
+#include <avr/power.h>
 #endif
-#define PIN        6 // Which pin on the Arduino is connected to the NeoPixels?
-#define NUMPIXELS 3 // How many NeoPixels are attached to the Arduino?
+#define PIN        6 // Arduino pin that is connected to the NeoPixels
+#define NUMPIXELS 3 //  Number of NeoPixels attached to the Flora
 
 // When setting up the NeoPixel library, we tell it how many pixels,
 // and which pin to use to send signals. Note that for older NeoPixel
@@ -44,12 +46,9 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 #define DELAYVAL 500 // Time (in milliseconds) to pause between pixels
 
-//  Variables
-const int PulseWire = 11;       // PulseSensor PURPLE WIRE connected to ANALOG PIN 0
+const int PulseWire = 11;       // PulseSensor connected to pin 12 on the board but is coded interchangably with 11
 int Threshold = 550;           // Determine which Signal to "count as a beat" and which to ignore.
-                               // Use the "Gettting Started Project" to fine-tune Threshold Value beyond default setting.
-                               // Otherwise leave the default "550" value. 
-int pinSwitch = 10;
+int pinSwitch = 10;            // Switch is connected to pin 10 on the Flora
 
 // declaring variables to hold the new and old switch states
 boolean oldSwitchState = LOW;
@@ -59,7 +58,7 @@ PulseSensorPlayground pulseSensor;  // Creates an instance of the PulseSensorPla
 
 
 void setup() {   
-Serial.begin(9600);          // For Serial Monitor
+Serial.begin(9600);          
 #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
 clock_prescale_set(clock_div_1);
 #endif
@@ -67,12 +66,11 @@ clock_prescale_set(clock_div_1);
 
   pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
 
-  // Configure the PulseSensor object, by assigning our variables to it. 
   pulseSensor.analogInput(PulseWire);   
   pulseSensor.setThreshold(Threshold);   
   pinMode(PulseWire, INPUT);
 
-   if (pulseSensor.begin()) { // Double-check the "pulseSensor" object was created and "began" seeing a signal. 
+   if (pulseSensor.begin()) { 
    Serial.println("We created a Stress Wrist Band !");  // This prints one time at Arduino power-up,  or on Arduino reset.  
   }
 }
@@ -88,46 +86,44 @@ void loop() {
  int myIBI = pulseSensor.getInterBeatIntervalMs();  // Calls function on our pulseSensor object that returns IBI as an "int".
                                                // "myIBI" hold this IBI value now. 
 
-if (pulseSensor.sawStartOfBeat()) {            // Constantly test to see if "a beat happened". 
+if (pulseSensor.sawStartOfBeat()) {             
   Serial.println(" Calculating IBI ♥ ! "); // If test is "true", print a message "a heartbeat happened".
   Serial.print("IBI: ");                        // Print phrase "IBI: " 
   Serial.println(myIBI);                        // Print the value inside of myIBI. 
 }
-    delay(20);                    // considered best practice in a simple sketch.
+    delay(20);                    
   
   pixels.clear(); // Set all pixel colors to 'off'
 
   // The first NeoPixel in a strand is #0, second is 1, all the way up
   // to the count of pixels minus one.
-  for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-
- 
+  for(int i=0; i<NUMPIXELS; i++) { 
 
     if (myIBI <= 350){
-      pixels.setPixelColor(i, pixels.Color(150, 0, 0));    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255 // (Red, Green, Blue)
+      pixels.setPixelColor(i, pixels.Color(150, 0, 0));    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255 // (Red, Green, Blue) // this one lights up red
        pixels.show();   // Send the updated pixel colors to the hardware.
       delay (50);
     }
     
     if (myIBI > 350 && myIBI < 500){
-      pixels.setPixelColor(i, pixels.Color(50, 50, 0));    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255 // (Red, Green, Blue)
+      pixels.setPixelColor(i, pixels.Color(50, 50, 0));    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255 // (Red, Green, Blue) // this one lights up yellow
       pixels.show();   // Send the updated pixel colors to the hardware.
       delay (10);
     
-      pixels.setPixelColor(i, pixels.Color(50, 50, 0));    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255 // (Red, Green, Blue)
+      pixels.setPixelColor(i, pixels.Color(50, 50, 0));    
       pixels.show();   // Send the updated pixel colors to the hardware.
       delay (10);
     }
     
    if (myIBI >= 500){
-     pixels.setPixelColor(i, pixels.Color(0, 150, 0));
+     pixels.setPixelColor(i, pixels.Color(0, 150, 0));    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255 // (Red, Green, Blue) // this one lights up green
      pixels.show();   // Send the updated pixel colors to the hardware.
      delay (50);
     }
   }
     }
-       oldSwitchState = newSwitchState;
+       oldSwitchState = newSwitchState; // changes switch state
     }
-    delay(DELAYVAL); // Pause before next pass through loop
+    delay(DELAYVAL); 
   }
 
